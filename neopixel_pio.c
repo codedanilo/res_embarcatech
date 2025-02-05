@@ -58,7 +58,6 @@ void led_rgb_blink() {
 }
 
 void npInit(uint pin) {
-    printf("Inicializando a matriz de LEDs\n"); // Print de inicialização dos LEDs
     uint offset = pio_add_program(pio0, &ws2818b_program);
     np_pio = pio0;
     sm = pio_claim_unused_sm(np_pio, false);
@@ -68,13 +67,11 @@ void npInit(uint pin) {
     }
 
     ws2818b_program_init(np_pio, sm, offset, pin, 800000.f);
-    
     for (uint i = 0; i < LED_COUNT; ++i) {
         leds[i].R = 0;
         leds[i].G = 0;
         leds[i].B = 0;
     }
-    printf("Matriz de LEDs inicializada\n"); // Print de confirmação
 }
 
 void npSetLED(const uint index, const uint8_t r, const uint8_t g, const uint8_t b) {
@@ -107,51 +104,32 @@ int getIndex(int x, int y) {
 
 // Função para exibir um número na matriz de LEDs
 void display_number(int num) {
-    int matriz [2][5][5][3] = {
-        // Número 0
-        {
-            {{0, 0, 0}, {243, 7, 7}, {243, 7, 7}, {243, 7, 7}, {0, 0, 0}},
-            {{243, 7, 7}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {243, 7, 7}},
-            {{243, 7, 7}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {243, 7, 7}},
-            {{243, 7, 7}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {243, 7, 7}},
-            {{0, 0, 0}, {243, 7, 7}, {243, 7, 7}, {243, 7, 7}, {0, 0, 0}}
-        },
-        // Número 1
-        {
-            {{0, 0, 0}, {0, 0, 0}, {243, 7, 7}, {0, 0, 0}, {0, 0, 0}},
-            {{0, 0, 0}, {243, 7, 7}, {243, 7, 7}, {0, 0, 0}, {0, 0, 0}},
-            {{0, 0, 0}, {243, 7, 7}, {243, 7, 7}, {0, 0, 0}, {0, 0, 0}},
-            {{0, 0, 0}, {243, 7, 7}, {243, 7, 7}, {0, 0, 0}, {0, 0, 0}},
-            {{0, 0, 0}, {243, 7, 7}, {243, 7, 7}, {0, 0, 0}, {0, 0, 0}}
-        },
+    int matriz [5][5][3] = {
+        {{0, 0, 0}, {0, 0, 0}, {243, 7, 7}, {0, 0, 0}, {0, 0, 0}}, // 0
+        {{0, 0, 0}, {243, 7, 7}, {243, 7, 7}, {0, 0, 0}, {0, 0, 0}}, // 1
+        {{243, 7, 7}, {0, 0, 0}, {243, 7, 7}, {0, 0, 0}, {0, 0, 0}}, // 2
+        {{0, 0, 0}, {0, 0, 0}, {243, 7, 7}, {0, 0, 0}, {0, 0, 0}}, // 3
+        {{243, 7, 7}, {243, 7, 7}, {243, 7, 7}, {243, 7, 7}, {243, 7, 7}}  // 9
     };
-
-    printf("Exibindo o número: %d\n", num); // Print para indicar qual número está sendo exibido.
     for (int linha = 0; linha < 5; linha++) {
         for (int coluna = 0; coluna < 5; coluna++) {
             int posicao = getIndex(linha, coluna);
-            printf("Posição %d (linha %d, coluna %d) - RGB(%d, %d, %d)\n", 
-                posicao, linha, coluna, 
-                matriz[num][coluna][linha][0], matriz[num][coluna][linha][1], matriz[num][coluna][linha][2]); // Print de cada LED
-            npSetLED(posicao, matriz[num][coluna][linha][0], matriz[num][coluna][linha][1], matriz[num][coluna][linha][2]);
+            npSetLED(posicao, matriz[coluna][linha][0], matriz[coluna][linha][1], matriz[coluna][linha][2]);
         }
     }
     npWrite();
 }
 
 void button_a_isr(uint gpio, uint32_t events) {
-    printf("Interrupt A acionado!\n"); // Print para verificar se a interrupção está funcionando
     debounce_button(gpio, &btn_a_pressed, &last_btn_a_time);
 }
 
 void button_b_isr(uint gpio, uint32_t events) {
-    printf("Interrupt B acionado!\n"); // Print para verificar se a interrupção está funcionando
     debounce_button(gpio, &btn_b_pressed, &last_btn_b_time);
 }
 
 int main() {
     stdio_init_all();
-    printf("Sistema inicializado. Teste de impressão.\n");
     npInit(LED_PIN);
     npClear();
 
@@ -159,13 +137,11 @@ int main() {
     gpio_set_dir(BTN_A_PIN, GPIO_IN);
     gpio_pull_up(BTN_A_PIN);
     gpio_set_irq_enabled_with_callback(BTN_A_PIN, GPIO_IRQ_EDGE_FALL, true, &button_a_isr);
-    printf("Botão A configurado para interrupção\n");
 
     gpio_init(BTN_B_PIN);
     gpio_set_dir(BTN_B_PIN, GPIO_IN);
     gpio_pull_up(BTN_B_PIN);
     gpio_set_irq_enabled_with_callback(BTN_B_PIN, GPIO_IRQ_EDGE_FALL, true, &button_b_isr);
-    printf("Botão B configurado para interrupção\n");
 
     gpio_init(LED_R_PIN);
     gpio_set_dir(LED_R_PIN, GPIO_OUT);
@@ -180,14 +156,12 @@ int main() {
         if (btn_a_pressed) {
             btn_a_pressed = false;
             if (numero < 9) numero++;
-            printf("Botão A pressionado. Número incrementado: %d\n", numero); // Print para verificar o número após o botão A ser pressionado.
             display_number(numero);
         }
 
         if (btn_b_pressed) {
             btn_b_pressed = false;
             if (numero > 0) numero--;
-            printf("Botão B pressionado. Número decrementado: %d\n", numero); // Print para verificar o número após o botão B ser pressionado.
             display_number(numero);
         }
 
