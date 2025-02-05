@@ -21,3 +21,6 @@ Esta é a Tarefa 1 da aula síncrona realizada no dia 27 de janeiro, referente a
 1. Clone este repositório:
    ```bash
    git clone https://github.com/codedanilo/res_embarcatech.git
+
+### Link do Projeto
+  https://youtube.com/shorts/xX1Mvl-njDM?feature=share
